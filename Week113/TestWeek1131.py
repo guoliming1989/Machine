@@ -8,7 +8,6 @@ from Week113.planar_utils import sigmoid,plot_decision_boundary,load_planar_data
 
 # 下载额外的数据集
 np.random.seed(1)   # 设定一个种子，保证结果的一致性
-
 noisy_circles, noisy_moons, blobs, gaussian_quantiles, no_structure = load_extra_datasets()
 datasets = {"noisy_circles": noisy_circles,
             "noisy_moons": noisy_moons,
@@ -52,12 +51,10 @@ def initialize_parameters(n_x,n_h,n_y):
     W2 = np.random.randn(n_y,n_h)
     b1 = np.zeros((n_h,1))
     b2 = np.zeros((n_y,1))
-
     assert(W1.shape == (n_h,n_x))
     assert(W2.shape == (n_y,n_h))
     assert(b1.shape == (n_h,1))
     assert(b2.shape == (n_y,1))
-
     parameters = {"W1":W1, "W2":W2, "b1":b1, "b2":b2}
     return parameters
 
