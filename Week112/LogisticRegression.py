@@ -1,8 +1,16 @@
 import numpy as np
-x = np.array([1, 2, 3])
-print(np.exp(x))
+import matplotlib.pyplot as plt
+import h5py
+import scipy
+from PIL import Image
+from scipy import ndimage
+from Week112.lr_utils import load_dataset
+train_set_x_orig, train_set_y, test_set_x_orig, test_set_y, classes = load_dataset()
+# Example of a picture
+index = 25
+plt.imshow(train_set_x_orig[index])
+print ("y = " + str(train_set_y[:, index]) + ", it's a '" + classes[np.squeeze(train_set_y[:, index])].decode("utf-8") +  "' picture.")
 
-# GRADED FUNCTION: sigmoid
 def sigmoid(z):
     """
     Compute the sigmoid of z
@@ -15,149 +23,6 @@ def sigmoid(z):
     s = 1.0/(1+np.exp(-z))
     ### END CODE HERE ###
     return s
-
-def sigmoid_derivative(x):
-    s = 1.0 / (1 + 1 / (1 + np.exp(x)))
-    ds = s * (1 - s)
-    return ds
-
-x = np.array([1, 2, 3])
-print ("sigmoid_derivative(x) = " + str(sigmoid_derivative(x)))
-
-
-# GRADED FUNCTION: image2vector,图像矩阵的转化
-def image2vector(image):
-    """
-    Argument:
-    image -- a numpy array of shape (length, height, depth)
-    Returns:
-    v -- a vector of shape (length*height*depth, 1)
-    """
-    ### START CODE HERE ### (≈ 1 line of code)
-    v = image.reshape((image.shape[0] * image.shape[1] * image.shape[2], 1))
-    ### END CODE HERE ###
-    return v
-
-# This is a 3 by 3 by 2 array, typically images will be (num_px_x, num_px_y,3) where 3 represents the RGB values
-image = np.array([[[ 0.67826139,  0.29380381],
-        [ 0.90714982,  0.52835647],
-        [ 0.4215251 ,  0.45017551]],
-       [[ 0.92814219,  0.96677647],
-        [ 0.85304703,  0.52351845],
-        [ 0.19981397,  0.27417313]],
-       [[ 0.60659855,  0.00533165],
-        [ 0.10820313,  0.49978937],
-        [ 0.34144279,  0.94630077]]])
-print(image2vector(image))
-
-# GRADED FUNCTION: normalizeRows,计算每一行的值，然后规则化
-def normalizeRows(x):
-    """
-    Implement a function that normalizes each row of the matrix x (to have unit length).
-    Argument:
-    x -- A numpy matrix of shape (n, m)
-    Returns:
-    x -- The normalized (by row) numpy matrix. You are allowed to modify x.
-    """
-    ### START CODE HERE ### (≈ 2 lines of code)
-    # Compute x_norm as the norm 2 of x. Use np.linalg.norm(..., ord = 2, axis = ..., keepdims = True)
-    x_norm = np.linalg.norm(x, axis=1, keepdims = True)  #计算每一行的长度，得到一个列向量
-    # Divide x by its norm.
-    x = x / x_norm  #利用numpy的广播，用矩阵与列向量相除。
-    ### END CODE HERE ###
-    return x
-
-x = np.array([
-    [0, 3, 4],
-    [1, 6, 4]])
-print("normalizeRows(x) = " + str(normalizeRows(x)))
-
-# GRADED FUNCTION: softmax,正则化参数
-def softmax(x):
-    """Calculates the softmax for each row of the input x.
-    Your code should work for a row vector and also for matrices of shape (n, m).
-    Argument:
-    x -- A numpy matrix of shape (n,m)
-    Returns:
-    s -- A numpy matrix equal to the softmax of x, of shape (n,m)
-    """
-    ### START CODE HERE ### (≈ 3 lines of code)
-    # Apply exp() element-wise to x. Use np.exp(...).
-    x_exp = np.exp(x) # (n,m)
-    # Create a vector x_sum that sums each row of x_exp. Use np.sum(..., axis = 1, keepdims = True).
-    x_sum = np.sum(x_exp, axis = 1, keepdims = True) # (n,1)
-    # Compute softmax(x) by dividing x_exp by x_sum. It should automatically use numpy broadcasting.
-    s = x_exp / x_sum  # (n,m) 广播的作用
-    ### END CODE HERE ###
-    return s
-
-x = np.array([
-    [9, 2, 5, 0, 0],
-    [7, 5, 0, 0 ,0]])
-print("softmax(x) = " + str(softmax(x)))
-
-import time
-x1 = [9, 2, 5, 0, 0, 7, 5, 0, 0, 0, 9, 2, 5, 0, 0]
-x2 = [9, 2, 2, 9, 0, 9, 2, 5, 0, 0, 9, 2, 5, 0, 0]
-
-#向量的内积
-tic = time.process_time()
-dot = 0
-for i in range(len(x1)):
-    dot +=x1[i]*x2[i]
-toc = time.process_time()
-print ("dot = " + str(dot) + "\n ----- Computation time = " + str(1000*(toc - tic)) + "ms")
-
-#调用numpy函数
-tic = time.process_time()
-dot = np.dot(x1,x2)
-toc = time.process_time()
-print ("dot = " + str(dot) + "\n ----- Computation time = " + str(1000*(toc - tic)) + "ms")
-
-### VECTORIZED ELEMENTWISE MULTIPLICATION ###
-tic = time.process_time()
-mul = np.multiply(x1,x2)
-toc = time.process_time()
-print ("elementwise multiplication = " + str(mul) + "\n ----- Computation time = " + str(1000*(toc - tic)) + "ms")
-
-#定义损失函数
-def L1(yhat,y):
-    loss = np.sum(abs(y-yhat))
-    return loss
-
-yhat = np.array([.9, 0.2, 0.1, .4, .9])
-y = np.array([1, 0, 0, 1, 1])
-print("L1 = " + str(L1(yhat,y)))
-
-# GRADED FUNCTION: L2
-
-def L2(yhat, y):
-    """
-    Arguments:
-    yhat -- vector of size m (predicted labels)
-    y -- vector of size m (true labels)
-    Returns:
-    loss -- the value of the L2 loss function defined above
-    """
-    ### START CODE HERE ### (≈ 1 line of code)
-    loss =np.sum(np.power((y - yhat), 2))
-    ### END CODE HERE ###
-    return loss
-
-
-import numpy as np
-import matplotlib.pyplot as plt
-import h5py
-import scipy
-from PIL import Image
-from scipy import ndimage
-from Week112.lr_utils import load_dataset
-
-train_set_x_orig, train_set_y, test_set_x_orig, test_set_y, classes = load_dataset()
-# Example of a picture
-index = 25
-plt.imshow(train_set_x_orig[index])
-print ("y = " + str(train_set_y[:, index]) + ", it's a '" + classes[np.squeeze(train_set_y[:, index])].decode("utf-8") +  "' picture.")
 
 ### START CODE HERE ### (≈ 3 lines of code)图像的大小
 m_train = train_set_x_orig.shape[0]
@@ -270,7 +135,6 @@ def optimize(w, b, X, Y, num_iterations, learning_rate, print_cost = False):
         1) Calculate the cost and the gradient for the current parameters. Use propagate().
         2) Update the parameters using gradient descent rule for w and b.
     """
-
     costs = []
     for i in range(num_iterations):
         # Cost and gradient calculation (≈ 1-4 lines of code)
@@ -304,7 +168,6 @@ print ("dw = " + str(grads["dw"]))
 print ("db = " + str(grads["db"]))
 
 # GRADED FUNCTION: predict
-
 def predict(w, b, X):
     '''
     Predict whether the label is 0 or 1 using learned logistic regression parameters (w, b)
@@ -323,7 +186,6 @@ def predict(w, b, X):
     A = sigmoid(np.dot(w.T, X) + b)
     ### END CODE HERE ###
     for i in range(A.shape[1]):
-
         # Convert probabilities A[0,i] to actual predictions p[0,i]
         ### START CODE HERE ### (≈ 4 lines of code)
         if A[0,i] > 0.5:
@@ -348,7 +210,6 @@ w, costs, grads for the outputs of optimize()
 def model(X_train, Y_train, X_test, Y_test, num_iterations = 2000, learning_rate = 0.5, print_cost = False):
     """
     Builds the logistic regression model by calling the function you've implemented previously
-
     Arguments:
     X_train -- training set represented by a numpy array of shape (num_px * num_px * 3, m_train)
     Y_train -- training labels represented by a numpy array (vector) of shape (1, m_train)
@@ -415,12 +276,9 @@ frame = legend.get_frame()
 frame.set_facecolor('0.90')
 plt.show()
 
-
 ## START CODE HERE ## (PUT YOUR IMAGE NAME)
 my_image = "data/cat_in_iran.jpg"   # change this to the name of your image file
 ## END CODE HERE ##
-
-
 
 # We preprocess the image to fit your algorithm.
 fname = my_image
